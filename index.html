@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Typing Speed Test</title>
+  <style>
+    :root {
+      --main-bg: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--main-bg);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.5s;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    .game-settings {
+      margin: 10px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    select, input[type="number"], button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    #wordDisplay {
+      font-size: 1.8rem;
+      margin: 20px 0;
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      min-height: 60px;
+      text-align: center;
+    }
+
+    #inputText {
+      padding: 10px;
+      font-size: 1.2rem;
+      width: 100%;
+      max-width: 500px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .info {
+      margin-top: 15px;
+      display: flex;
+      gap: 20px;
+      font-size: 1.1rem;
+    }
+
+    .btn {
+      background-color: #fff;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Typing Speed Game</h1>
+
+  <div class="game-settings">
+    <label>Mode:
+      <select id="modeSelect">
+        <option value="words">Words</option>
+        <option value="lines">Full Sentences</option>
+      </select>
+    </label>
+    <label>Time (sec):
+      <input type="number" id="timeInput" min="10" max="300" value="30">
+    </label>
+    <label>Theme:
+      <select id="themeSelect">
+        <option value="blue">Blue Gradient</option>
+        <option value="sunset">Sunset</option>
+        <option value="aqua">Aqua</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+    <button class="btn" onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="wordDisplay">Press Start to begin</div>
+  <input type="text" id="inputText" placeholder="Type here..." disabled>
+
+  <div class="info">
+    <div id="score">Score: 0</div>
+    <div id="time">Time: 0s</div>
+    <div id="wpm">WPM: 0</div>
+  </div>
+
+  <script>
+    const words = [
+      "keyboard", "developer", "javascript", "function", "variable",
+      "website", "react", "html", "css", "async", "performance", "render"
+    ];
+
+    const lines = [
+      "Practice makes perfect in everything you do.",
+      "JavaScript is a versatile language for the web.",
+      "Typing fast is a valuable skill for coders.",
+      "Consistency is the key to mastery.",
+      "Front-end development combines logic and design."
+    ];
+
+    const wordDisplay = document.getElementById("wordDisplay");
+    const inputText = document.getElementById("inputText");
+    const scoreEl = document.getElementById("score");
+    const timeEl = document.getElementById("time");
+    const wpmEl = document.getElementById("wpm");
+
+    const modeSelect = document.getElementById("modeSelect");
+    const timeInput = document.getElementById("timeInput");
+    const themeSelect = document.getElementById("themeSelect");
+
+    let score = 0;
+    let time = 0;
+    let interval;
+    let wordCount = 0;
+
+    function getRandomItem(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function showNextText() {
+      const mode = modeSelect.value;
+      const text = mode === "lines" ? getRandomItem(lines) : getRandomItem(words);
+      wordDisplay.textContent = text;
+    }
+
+    inputText.addEventListener("input", () => {
+      if (inputText.value.trim() === wordDisplay.textContent.trim()) {
+        score++;
+        wordCount += wordDisplay.textContent.trim().split(" ").length;
+        scoreEl.textContent = `Score: ${score}`;
+        inputText.value = "";
+        showNextText();
+      }
+    });
+
+    function updateTimer() {
+      if (time > 0) {
+        time--;
+        timeEl.textContent = `Time: ${time}s`;
+      } else {
+        clearInterval(interval);
+        inputText.disabled = true;
+        const wpm = Math.round(wordCount / (timeInput.value / 60));
+        wpmEl.textContent = `WPM: ${wpm}`;
+        wordDisplay.textContent = "⏱️ Time's Up!";
+      }
+    }
+
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      switch (theme) {
+        case "blue":
+          root.style.setProperty("--main-bg", "linear-gradient(135deg, #667eea, #764ba2)");
+          break;
+        case "sunset":
+          root.style.setProperty("--main-bg", "linear-gradient(135deg, #ff758c, #ff7eb3)");
+          break;
+        case "aqua":
+          root.style.setProperty("--main-bg", "linear-gradient(135deg, #43e97b, #38f9d7)");
+          break;
+        case "dark":
+          root.style.setProperty("--main-bg", "#1c1c1c");
+          break;
+      }
+    }
+
+    function startGame() {
+      clearInterval(interval);
+      score = 0;
+      wordCount = 0;
+      time = parseInt(timeInput.value) || 30;
+      scoreEl.textContent = "Score: 0";
+      wpmEl.textContent = "WPM: 0";
+      timeEl.textContent = `Time: ${time}s`;
+      inputText.disabled = false;
+      inputText.value = "";
+      inputText.focus();
+      showNextText();
+      applyTheme(themeSelect.value);
+      interval = setInterval(updateTimer, 1000);
+    }
+  </script>
+</body>
+</html>
